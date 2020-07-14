@@ -1,0 +1,9 @@
+apiVersion: operators.coreos.com/v1
+kind: CatalogSourceConfig
+metadata:
+  name: additional-operators
+  namespace: openshift-marketplace
+spec:
+  source: community-operators
+  targetNamespace: openshift-operators 
+  packages: knative-kafka-operator,strimzi-kafka-operator
