@@ -33,17 +33,17 @@ NB: You may need to make this repository public using the Quay console.
 
 Install Serverless Operator
 
-` oc apply -f serverless-operator.yaml`
+` oc apply -f ./deploy/serverless-operator.yaml`
 
-` oc apply -f serverless-subscription.yaml`
+` oc apply -f ./deploy/serverless-subscription.yaml`
 
 Install the strimzi operator and Knative Apache Kafka operator
 
-` oc apply -f additional-operators.yaml`
+` oc apply -f ./deploy/additional-operators.yaml`
 
-` oc apply -f strimzi-subscription.yaml`
+` oc apply -f ./deploy/strimzi-subscription.yaml`
 
-` oc apply -f knative-kafka-subscription.yaml`
+` oc apply -f ./deploy/knative-kafka-subscription.yaml`
 
 
 ## Create persistent instance of mysql
@@ -87,7 +87,7 @@ Create a kafka namespace
 
 Deploy kafka
 
-` oc apply -f kafka.yaml`
+` oc apply -f ./deploy/kafka.yaml`
 
 Wait until the kafka cluster is ready, you should see something like:
 
@@ -109,7 +109,7 @@ with annotation
     strimzi.io/use-connector-resources: "true"
 ```
 
-`oc apply -f kafka-connect-s2i.yaml`
+`oc apply -f ./deploy/kafka-connect-s2i.yaml`
 
 Get the build config:
 
@@ -123,7 +123,7 @@ Wait for the my-connect-cluster-connect-2-xxxxx pod to be ready.
 
 ## create the kafka connect instance
 
-`oc apply -f kafkaConnector.yaml`
+`oc apply -f ./deploy/kafkaConnector.yaml`
 
 Restart the kafka connect pod
 
@@ -179,7 +179,7 @@ Create knative-serving project
 
 Install knative-serving
 
-`oc apply -f knative-serving.yaml`
+`oc apply -f ./deploy/knative-serving.yaml`
 
 Wait for the pods to be created:
 
@@ -201,7 +201,7 @@ Create knative-eventing project
 
 Install  knative eventing
 
-`oc apply -f knative-eventing.yaml`
+`oc apply -f ./deploy/knative-eventing.yaml`
 
 Wait for pods to be created:
 
@@ -269,7 +269,7 @@ kafka-webhook-586bc65d47-r9jxq              1/1       Running   0          38s
 
 Update event-display with your quay.io account name
 
-`oc apply -f event-display.yaml `
+`oc apply -f ./deploy/event-display.yaml `
 
 Check the logs of the pod e.g.
 
@@ -287,7 +287,7 @@ App Version 1.0 listening on:  8080
 
 Create the event source:
 
-`oc apply -f event-source-simple.yaml`
+`oc apply -f ./deploy/event-source-simple.yaml`
 
 ## Final test
 
@@ -297,3 +297,32 @@ From the MYSQL pod terminal perform the following:
 mysql -u root
 use inventory;
 update customers set name = 'John Hayes' where customer_id = 1;
+```
+
+Looking at the logs of the event-display pod you should see something like:
+
+`oc logs -f event-display-6tqpm-deployment-xxxxxxx -c user-container`
+
+```
+CloudEvent {
+  spec: Spec1 {
+    payload: {
+      specversion: '1.0',
+      id: 'partition:0/offset:4',
+      time: '2020-07-14T19:23:34.284Z',
+      source: '/apis/v1/namespaces/knative-test/kafkasources/kafka-source#inventory.inventory.customers',
+      type: 'dev.knative.kafka.event',
+      datacontenttype: 'application/json',
+      data: [Object],
+      subject: 'partition:0#4',
+      key: '{"schema":{"type":"struct","fields":[{"type":"int32","optional":false,"field":"customer_id"}],"optional":false,"name":"inventory.inventory.customers.Key"},"payload":{"customer_id":1}}',
+      traceparent: '00-4578e0341baf85188e8da3bc2a77cfce-154508a08d6ac08f-00'
+    }
+  },
+  formatter: JSONFormatter {},
+  extensions: {
+    traceparent: '00-4578e0341baf85188e8da3bc2a77cfce-154508a08d6ac08f-00',
+    key: '{"schema":{"type":"struct","fields":[{"type":"int32","optional":false,"field":"customer_id"}],"optional":false,"name":"inventory.inventory.customers.Key"},"payload":{"customer_id":1}}'
+  }
+}
+```

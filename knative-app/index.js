@@ -23,7 +23,6 @@ app.post('/', (req, res) => {
   
   try {
     delete req.headers['ce-time']
-    console.log(req.body);
     let myevent = receiver.accept(req.headers,req.body);
     console.log(myevent);
     res.status(201).send("Event Accepted");
@@ -38,5 +37,5 @@ app.post('/', (req, res) => {
 });
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
-  console.log('App Version 1.28 listening on: ', port);
+  console.log('App Version 1.0 listening on: ', port);
 });
