@@ -1,5 +1,6 @@
 # Mysql / Debezium / Kafkfa / Knative Openshift example
 
+This is an example of a complete end-to-end demonstration of mysql -> debezium -> kafka -> knative cloudEvents.
 
 ## Debezium mysql plugin download
 
