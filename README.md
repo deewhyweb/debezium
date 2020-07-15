@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS customers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )  ENGINE=INNODB;
 
-INSERT INTO customers (name) VALUES ('Mary Hayes'); 
+INSERT INTO customers (name) VALUES ('Dale Arden'); 
 ```
 
 
@@ -163,13 +163,13 @@ From the MYSQL pod terminal perform the following:
 ```
 mysql -u root
 use inventory;
-update customers set name = 'Tom Hayes' where customer_id = 1;
+update customers set name = 'Hans Zarkov' where customer_id = 1;
 ```
 
 The kafka topic monitor should show something like:
 
 ```
-{"schema":{"type":"struct","fields":[{"type":"struct","fields":[{"type":"int32","optional":false,"field":"customer_id"},{"type":"string","optional":false,"field":"name"},{"type":"string","optional":true,"name":"io.debezium.time.ZonedTimestamp","version":1,"field":"created_at"}],"optional":true,"name":"inventory.inventory.customers.Value","field":"before"},{"type":"struct","fields":[{"type":"int32","optional":false,"field":"customer_id"},{"type":"string","optional":false,"field":"name"},{"type":"string","optional":true,"name":"io.debezium.time.ZonedTimestamp","version":1,"field":"created_at"}],"optional":true,"name":"inventory.inventory.customers.Value","field":"after"},{"type":"struct","fields":[{"type":"string","optional":false,"field":"version"},{"type":"string","optional":false,"field":"connector"},{"type":"string","optional":false,"field":"name"},{"type":"int64","optional":false,"field":"ts_ms"},{"type":"string","optional":true,"name":"io.debezium.data.Enum","version":1,"parameters":{"allowed":"true,last,false"},"default":"false","field":"snapshot"},{"type":"string","optional":false,"field":"db"},{"type":"string","optional":true,"field":"table"},{"type":"int64","optional":false,"field":"server_id"},{"type":"string","optional":true,"field":"gtid"},{"type":"string","optional":false,"field":"file"},{"type":"int64","optional":false,"field":"pos"},{"type":"int32","optional":false,"field":"row"},{"type":"int64","optional":true,"field":"thread"},{"type":"string","optional":true,"field":"query"}],"optional":false,"name":"io.debezium.connector.mysql.Source","field":"source"},{"type":"string","optional":false,"field":"op"},{"type":"int64","optional":true,"field":"ts_ms"},{"type":"struct","fields":[{"type":"string","optional":false,"field":"id"},{"type":"int64","optional":false,"field":"total_order"},{"type":"int64","optional":false,"field":"data_collection_order"}],"optional":true,"field":"transaction"}],"optional":false,"name":"inventory.inventory.customers.Envelope"},"payload":{"before":{"customer_id":1,"name":"Mary Hayes","created_at":"2020-07-14T17:09:05Z"},"after":{"customer_id":1,"name":"Tom Hayes","created_at":"2020-07-14T17:09:05Z"},"source":{"version":"1.2.0.Final","connector":"mysql","name":"inventory","ts_ms":1594748682000,"snapshot":"false","db":"inventory","table":"customers","server_id":1,"gtid":null,"file":"binlog.000002","pos":1839,"row":0,"thread":654,"query":null},"op":"u","ts_ms":1594748682439,"transaction":null}}
+{"schema":{"type":"struct","fields":[{"type":"struct","fields":[{"type":"int32","optional":false,"field":"customer_id"},{"type":"string","optional":false,"field":"name"},{"type":"string","optional":true,"name":"io.debezium.time.ZonedTimestamp","version":1,"field":"created_at"}],"optional":true,"name":"inventory.inventory.customers.Value","field":"before"},{"type":"struct","fields":[{"type":"int32","optional":false,"field":"customer_id"},{"type":"string","optional":false,"field":"name"},{"type":"string","optional":true,"name":"io.debezium.time.ZonedTimestamp","version":1,"field":"created_at"}],"optional":true,"name":"inventory.inventory.customers.Value","field":"after"},{"type":"struct","fields":[{"type":"string","optional":false,"field":"version"},{"type":"string","optional":false,"field":"connector"},{"type":"string","optional":false,"field":"name"},{"type":"int64","optional":false,"field":"ts_ms"},{"type":"string","optional":true,"name":"io.debezium.data.Enum","version":1,"parameters":{"allowed":"true,last,false"},"default":"false","field":"snapshot"},{"type":"string","optional":false,"field":"db"},{"type":"string","optional":true,"field":"table"},{"type":"int64","optional":false,"field":"server_id"},{"type":"string","optional":true,"field":"gtid"},{"type":"string","optional":false,"field":"file"},{"type":"int64","optional":false,"field":"pos"},{"type":"int32","optional":false,"field":"row"},{"type":"int64","optional":true,"field":"thread"},{"type":"string","optional":true,"field":"query"}],"optional":false,"name":"io.debezium.connector.mysql.Source","field":"source"},{"type":"string","optional":false,"field":"op"},{"type":"int64","optional":true,"field":"ts_ms"},{"type":"struct","fields":[{"type":"string","optional":false,"field":"id"},{"type":"int64","optional":false,"field":"total_order"},{"type":"int64","optional":false,"field":"data_collection_order"}],"optional":true,"field":"transaction"}],"optional":false,"name":"inventory.inventory.customers.Envelope"},"payload":{"before":{"customer_id":1,"name":"Dale Arden","created_at":"2020-07-14T17:09:05Z"},"after":{"customer_id":1,"name":"Hans Zarkov","created_at":"2020-07-14T17:09:05Z"},"source":{"version":"1.2.0.Final","connector":"mysql","name":"inventory","ts_ms":1594748682000,"snapshot":"false","db":"inventory","table":"customers","server_id":1,"gtid":null,"file":"binlog.000002","pos":1839,"row":0,"thread":654,"query":null},"op":"u","ts_ms":1594748682439,"transaction":null}}
 ```
 
 ## Install knative eventing and serving
@@ -297,7 +297,7 @@ From the MYSQL pod terminal perform the following:
 ```
 mysql -u root
 use inventory;
-update customers set name = 'John Hayes' where customer_id = 1;
+update customers set name = 'General Klytus' where customer_id = 1;
 ```
 
 Looking at the logs of the event-display pod you should see something like:
