@@ -1,4 +1,4 @@
 .DS_Store
 node_modules
-plugins/*
-!plugins/.gitkeep
+kafka-connect/plugins/*
+!kafka-connect/plugins/.gitkeep
