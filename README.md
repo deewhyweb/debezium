@@ -5,7 +5,7 @@ This is an example of a complete end-to-end demonstration of mysql -> debezium -
 
 ## Knative app build
 
-You will need a quay.io account to push your container image.
+You will need a quay.io account to push your container image.  
 Login to quay with podman:
 
 `podman login quay.io`
@@ -38,21 +38,18 @@ Download the mysql debezium plugin from this link: [Mysql plugin](https://repo1.
 
 `podman push quay.io/$QUAY_USERNAME/kafka-connect-debezium:v1.0`
 
+NB: You may need to make this repository public using the Quay console.
+
 ## Install operators
 
-Install Serverless Operator
+Install Serverless Operator, strimzi operator and Knative Apache Kafka operator
 
-` oc apply -f ./deploy/serverless-operator.yaml`
+`oc apply -f ./deploy/operators.yaml`
 
-` oc apply -f ./deploy/serverless-subscription.yaml`
+Deploy operator subscriptions
 
-Install the strimzi operator and Knative Apache Kafka operator
+`oc apply -f ./deploy/operator-subscriptions.yaml`
 
-` oc apply -f ./deploy/additional-operators.yaml`
-
-` oc apply -f ./deploy/strimzi-subscription.yaml`
-
-` oc apply -f ./deploy/knative-kafka-subscription.yaml`
 
 
 ## Create persistent instance of mysql
@@ -170,10 +167,6 @@ Wait for the my-connect-cluster-connect-xxxxx pod to be ready.
 ## create the kafka connect instance
 
 `oc apply -f ./deploy/kafkaConnector.yaml`
-
-Restart the kafka connect pod
-
-`oc rollout latest my-connect-cluster-connect`
 
 ## Test debezium connection
 
