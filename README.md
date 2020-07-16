@@ -6,15 +6,18 @@ This is an example of a complete end-to-end demonstration of mysql -> debezium -
 
 Download the mysql debezium plugin from this link: [Mysql plugin](https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/1.2.0.Final/debezium-connector-mysql-1.2.0.Final-plugin.tar.gz)
 
-Extract this archive into the ./plugins folder.
-The plugin folder should look like ./plugins/debezium-connector-mysql/...
+wget -c https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/1.2.0.Final/debezium-connector-mysql-1.2.0.Final-plugin.tar.gz -O - | tar -xz -C  ./kafka-connect/plugins
+
+Extract this archive into the ./kafka-connect/plugins folder.
+The plugin folder should look like ./kafka-connect/plugins/debezium-connector-mysql/...
+
 
 ## Knative app build
 
 You will need a quay.io account to push your container image.
-Login to quay with docker:
+Login to quay with podman:
 
-`docker login quay.io`
+`podman login quay.io`
 
 Create an environment variable QUAY_USERNAME
 
@@ -22,13 +25,18 @@ Create an environment variable QUAY_USERNAME
 
 Build the knative app image and tag.
 
-`docker build -t quay.io/$QUAY_USERNAME/knative-nodejs:v1.0 ./knative-app`
+`podman build -t quay.io/$QUAY_USERNAME/knative-nodejs:v1.0 ./knative-app`
 
 Push the image to quay
 
-`docker push quay.io/$QUAY_USERNAME/knative-nodejs:v1.0`
+`podman push quay.io/$QUAY_USERNAME/knative-nodejs:v1.0`
 
 NB: You may need to make this repository public using the Quay console.
+
+## Build the Kafka connect image
+podman build ./kafka-connect -t quay.io/$QUAY_USERNAME/kafka-connect-debezium:v1.0
+
+podman push quay.io/$QUAY_USERNAME/kafka-connect-debezium:v1.0
 
 ## Install operators
 
