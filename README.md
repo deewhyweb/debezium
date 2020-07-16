@@ -2,15 +2,6 @@
 
 This is an example of a complete end-to-end demonstration of mysql -> debezium -> kafka -> knative cloudEvents.
 
-## Debezium mysql plugin download
-
-Download the mysql debezium plugin from this link: [Mysql plugin](https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/1.2.0.Final/debezium-connector-mysql-1.2.0.Final-plugin.tar.gz)
-
-wget -c https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/1.2.0.Final/debezium-connector-mysql-1.2.0.Final-plugin.tar.gz -O - | tar -xz -C  ./kafka-connect/plugins
-
-Extract this archive into the ./kafka-connect/plugins folder.
-The plugin folder should look like ./kafka-connect/plugins/debezium-connector-mysql/...
-
 
 ## Knative app build
 
@@ -33,10 +24,19 @@ Push the image to quay
 
 NB: You may need to make this repository public using the Quay console.
 
-## Build the Kafka connect image
-podman build ./kafka-connect -t quay.io/$QUAY_USERNAME/kafka-connect-debezium:v1.0
+## Debezium mysql plugin download
 
-podman push quay.io/$QUAY_USERNAME/kafka-connect-debezium:v1.0
+Download the mysql debezium plugin from this link: [Mysql plugin](https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/1.2.0.Final/debezium-connector-mysql-1.2.0.Final-plugin.tar.gz) and extract this archive into the ./kafka-connect/plugins folder.
+
+`wget -c https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/1.2.0.Final/debezium-connector-mysql-1.2.0.Final-plugin.tar.gz -O - | tar -xz -C  ./kafka-connect/plugins `
+
+
+
+## Build the Kafka connect image
+
+`podman build ./kafka-connect -t quay.io/$QUAY_USERNAME/kafka-connect-debezium:v1.0`
+
+`podman push quay.io/$QUAY_USERNAME/kafka-connect-debezium:v1.0`
 
 ## Install operators
 
@@ -111,24 +111,61 @@ my-cluster-zookeeper-2                        1/1       Running   0          102
 ```
 
 ## Kafka Connect 
-Create Kafka Connect Source to Image instance
-with annotation
+
+First we're going to create a properties file with our mysql credentials
+
 ```
+cat <<EOF > debezium-mysql-credentials.properties
+mysql_username: debezium
+mysql_password: dbz
+EOF
+```
+
+We're now going to create a secret from this properties file
+```
+oc -n kafka create secret generic my-sql-credentials \
+  --from-file=debezium-mysql-credentials.properties
+rm debezium-mysql-credentials.properties
+```
+
+Create Kafka Connect instance from our custom image.
+
+```
+cat <<EOF | kubectl -n kafka apply -f -
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
   annotations:
+  # use-connector-resources configures this KafkaConnect
+  # to use KafkaConnector resources to avoid
+  # needing to call the Connect REST API directly
     strimzi.io/use-connector-resources: "true"
+spec:
+  image: quay.io/${QUAY_USERNAME}/kafka-connect-debezium:v1.0 
+  replicas: 1
+  bootstrapServers: my-cluster-kafka-bootstrap:9093
+  tls:
+    trustedCertificates:
+      - secretName: my-cluster-cluster-ca-cert
+        certificate: ca.crt
+  config:
+    config.storage.replication.factor: 1
+    offset.storage.replication.factor: 1
+    status.storage.replication.factor: 1
+    config.providers: file
+    config.providers.file.class: org.apache.kafka.common.config.provider.FileConfigProvider
+  externalConfiguration:
+    volumes:
+      - name: connector-config
+        secret:
+          secretName: my-sql-credentials
+
+EOF
+
 ```
 
-`oc apply -f ./deploy/kafka-connect-s2i.yaml`
-
-Get the build config:
-
-`oc get buildconfigs`
-
-Trigger a new s2i build with the debezium mysql plugin
-
-`oc start-build my-connect-cluster-connect --from-dir=./plugins`
-
-Wait for the my-connect-cluster-connect-2-xxxxx pod to be ready.
+Wait for the my-connect-cluster-connect-xxxxx pod to be ready.
 
 ## create the kafka connect instance
 
@@ -158,7 +195,13 @@ schema-changes.inventory
 ```
 
 Monitor the inventory.inventory.customers kafka topic
+ pod terminal perform the following:
 
+```
+mysql -u root
+use inventory;
+update customers set name = 'Hans Zarkov' where customer_id = 1;
+```
 ```
 oc -n kafka exec my-cluster-kafka-0 -c kafka -i -t -- \
  bin/kafka-console-consumer.sh \
@@ -166,13 +209,7 @@ oc -n kafka exec my-cluster-kafka-0 -c kafka -i -t -- \
     --topic inventory.inventory.customers 
 ```
 
-From the MYSQL pod terminal perform the following:
-
-```
-mysql -u root
-use inventory;
-update customers set name = 'Hans Zarkov' where customer_id = 1;
-```
+From the MYSQL
 
 The kafka topic monitor should show something like:
 

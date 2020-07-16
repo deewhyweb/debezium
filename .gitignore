@@ -2,3 +2,4 @@
 node_modules
 kafka-connect/plugins/*
 !kafka-connect/plugins/.gitkeep
+debezium-mysql-credentials.properties
