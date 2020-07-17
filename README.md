@@ -128,7 +128,7 @@ rm debezium-mysql-credentials.properties
 Create Kafka Connect instance from our custom image.
 
 ```
-cat <<EOF | kubectl -n kafka apply -f -
+cat <<EOF | oc -n kafka apply -f -
 apiVersion: kafka.strimzi.io/v1beta1
 kind: KafkaConnect
 metadata:
@@ -306,13 +306,26 @@ kafka-webhook-586bc65d47-r9jxq              1/1       Running   0          38s
 
 `oc new-project knative-test`
 
-Update event-display with your quay.io account name
+Deploy the Knative event-display service using the image we pushed to your quay.io repository.
 
-`oc apply -f ./deploy/event-display.yaml `
+```
+cat <<EOF | oc -n kafka apply -f -
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: event-display
+spec:
+  template:
+    spec:
+      containers:
+      - image: quay.io/${QUAY_USERNAME}/knative-nodejs:v1.0
+     
+EOF
+```
 
 Check the logs of the pod e.g.
 
-`oc logs event-display-79sph-deployment-56979674bd-h8fkl -c user-container`
+`oc logs -f -c user-container  $(oc get pods -o name | grep event-display)`
 
 You should see:
 
