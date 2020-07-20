@@ -285,7 +285,7 @@ configmap/config-observability created
 
 Deploy KnativeEventingKafka in knative-eventing
  
- `c apply -f knativeEventingKafka.yaml`
+ `oc apply -f ./deploy/knativeEventingKafka.yaml`
 
  Wait for the pods to be created:
 
@@ -309,7 +309,7 @@ kafka-webhook-586bc65d47-r9jxq              1/1       Running   0          38s
 Deploy the Knative event-display service using the image we pushed to your quay.io repository.
 
 ```
-cat <<EOF | oc -n kafka apply -f -
+cat <<EOF | oc -n knative-test apply -f -
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
