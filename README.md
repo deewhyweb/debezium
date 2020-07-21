@@ -3,43 +3,6 @@
 This is an example of a complete end-to-end demonstration of mysql -> debezium -> kafka -> knative cloudEvents.
 
 
-## Knative app build
-
-You will need a quay.io account to push your container image.  
-Login to quay with podman:
-
-`podman login quay.io`
-
-Create an environment variable QUAY_USERNAME
-
-`export QUAY_USERNAME=yourUserName`
-
-Build the knative app image and tag.
-
-`podman build -t quay.io/$QUAY_USERNAME/knative-nodejs:v1.0 ./knative-app`
-
-Push the image to quay
-
-`podman push quay.io/$QUAY_USERNAME/knative-nodejs:v1.0`
-
-NB: You may need to make this repository public using the Quay console.
-
-## Debezium mysql plugin download
-
-Download the mysql debezium plugin from this link: [Mysql plugin](https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/1.2.0.Final/debezium-connector-mysql-1.2.0.Final-plugin.tar.gz) and extract this archive into the ./kafka-connect/plugins folder.
-
-`wget -c https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/1.2.0.Final/debezium-connector-mysql-1.2.0.Final-plugin.tar.gz -O - | tar -xz -C  ./kafka-connect/plugins `
-
-
-
-## Build the Kafka connect image
-
-`podman build ./kafka-connect -t quay.io/$QUAY_USERNAME/kafka-connect-debezium:v1.0`
-
-`podman push quay.io/$QUAY_USERNAME/kafka-connect-debezium:v1.0`
-
-NB: You may need to make this repository public using the Quay console.
-
 ## Install operators
 
 Install Serverless Operator, strimzi operator and Knative Apache Kafka operator
@@ -49,7 +12,6 @@ Install Serverless Operator, strimzi operator and Knative Apache Kafka operator
 Deploy operator subscriptions
 
 `oc apply -f ./deploy/operator-subscriptions.yaml`
-
 
 
 ## Create persistent instance of mysql
@@ -62,6 +24,10 @@ Create a mysql namespace
 
 
 Open terminal to mysql pod and login as root:
+
+`oc rsh $(oc get pods -o name | grep -v deploy)`
+
+Login to mysql as root
 
 `mysql -u root`
 
@@ -85,11 +51,16 @@ CREATE TABLE IF NOT EXISTS customers (
 INSERT INTO customers (name) VALUES ('Dale Arden'); 
 ```
 
+Verify the table is created and populated;
+
+`select * from customers;`
+
+Close the connection to the mysql pod
 
 ## Setup kafka
 Create a kafka namespace
 
-` oc new-project kafka `
+`oc new-project kafka`
 
 Deploy kafka
 
@@ -107,9 +78,35 @@ my-cluster-zookeeper-1                        1/1       Running   0          102
 my-cluster-zookeeper-2                        1/1       Running   0          102s
 ```
 
-## Kafka Connect 
+# Kafka Connect 
 
-First we're going to create a properties file with our mysql credentials
+
+## Debezium mysql plugin download
+
+Download the mysql debezium plugin from this link: [Mysql plugin](https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/1.2.0.Final/debezium-connector-mysql-1.2.0.Final-plugin.tar.gz) and extract this archive into the ./kafka-connect/plugins folder.
+
+`wget -c https://repo1.maven.org/maven2/io/debezium/debezium-connector-mysql/1.2.0.Final/debezium-connector-mysql-1.2.0.Final-plugin.tar.gz -O - | tar -xz -C  ./kafka-connect/plugins `
+
+
+## Build the Kafka connect image
+
+Create an environment variable QUAY_USERNAME
+
+`export QUAY_USERNAME=yourUserName`
+
+`podman build ./kafka-connect -t quay.io/$QUAY_USERNAME/kafka-connect-debezium:v1.0`
+
+You will need a quay.io account to push your container image.  
+Login to quay with podman:
+
+`podman login quay.io`
+
+
+`podman push quay.io/$QUAY_USERNAME/kafka-connect-debezium:v1.0`
+
+NB: You may need to make this repository public using the Quay console.
+
+Next we're going to create a properties file with our mysql credentials
 
 ```
 cat <<EOF > debezium-mysql-credentials.properties
@@ -191,6 +188,7 @@ Monitor the inventory.inventory.customers kafka topic
  pod terminal perform the following:
 
 ```
+oc rsh  -n mysql  $(oc get pods -o name -n mysql | grep -v deploy)
 mysql -u root
 use inventory;
 update customers set name = 'Hans Zarkov' where customer_id = 1;
@@ -302,6 +300,27 @@ kafka-controller-manager-69c9c9f7fb-89n9m   1/1       Running   0          49s
 kafka-webhook-586bc65d47-r9jxq              1/1       Running   0          38s
  ```
 
+## Knative app build
+
+You will need a quay.io account to push your container image.  
+Login to quay with podman:
+
+`podman login quay.io`
+
+Create an environment variable QUAY_USERNAME
+
+`export QUAY_USERNAME=yourUserName`
+
+Build the knative app image and tag.
+
+`podman build -t quay.io/$QUAY_USERNAME/knative-nodejs:v1.0 ./knative-app`
+
+Push the image to quay
+
+`podman push quay.io/$QUAY_USERNAME/knative-nodejs:v1.0`
+
+NB: You may need to make this repository public using the Quay console.
+
 ## Deploy knative node.js sample app
 
 `oc new-project knative-test`
@@ -344,7 +363,7 @@ Create the event source:
 ## Final test
 
 From the MYSQL pod terminal perform the following:
-
+`oc rsh  -n mysql  $(oc get pods -o name -n mysql | grep -v deploy)`
 ```
 mysql -u root
 use inventory;
@@ -353,7 +372,7 @@ update customers set name = 'General Klytus' where customer_id = 1;
 
 Looking at the logs of the event-display pod you should see something like:
 
-`oc logs -f event-display-6tqpm-deployment-xxxxxxx -c user-container`
+`oc logs -f -c user-container -n knative-test  $(oc get pods -o name -n knative-test | grep event-display)`
 
 ```
 CloudEvent {
