@@ -250,37 +250,6 @@ imc-controller-9dcc65bd-xrstj          1/1       Running   0          11s
 imc-dispatcher-6bdddfc8bf-2fwfd        1/1       Running   0          11s
 ```
 
-Deploy Knative Eventing KafkaSource
-
-```
-oc apply \
--f https://github.com/knative/eventing-contrib/\
-releases/download/v0.14.1/kafka-source.yaml
-```
-
-You should see:
-
-```
-namespace/knative-sources created
-serviceaccount/kafka-controller-manager created
-clusterrole.rbac.authorization.k8s.io/eventing-sources-kafka-controller created
-clusterrole.rbac.authorization.k8s.io/eventing-contrib-kafka-source-observer created
-clusterrolebinding.rbac.authorization.k8s.io/eventing-sources-kafka-controller created
-clusterrolebinding.rbac.authorization.k8s.io/eventing-sources-kafka-controller-addressable-resolver created
-customresourcedefinition.apiextensions.k8s.io/kafkasources.sources.knative.dev created
-service/kafka-controller created
-deployment.apps/kafka-controller-manager created
-service/kafka-source-webhook created
-mutatingwebhookconfiguration.admissionregistration.k8s.io/defaulting.webhook.kafka.sources.knative.dev created
-validatingwebhookconfiguration.admissionregistration.k8s.io/validation.webhook.kafka.sources.knative.dev created
-validatingwebhookconfiguration.admissionregistration.k8s.io/config.webhook.kafka.sources.knative.dev created
-secret/kafka-source-webhook-certs created
-configmap/config-leader-election-kafka created
-configmap/config-logging created
-configmap/config-observability created
-```
-
-
 Deploy KnativeEventingKafka in knative-eventing
  
  `oc apply -f ./deploy/knativeEventingKafka.yaml`
